@@ -1,32 +1,90 @@
-## Laravel Roles Permissions Admin - Bouncer version
+Laravel 5.2 Quickstart on OpenShift
+===================================
+[Laravel](http://laravel.com/) is a free, open source PHP web application framework, designed for the development of model–view–controller (MVC) web applications.
 
-This is a Laravel 5.4 adminpanel starter project with roles-permissions management based on [Joseph Silber's Bouncer package](https://github.com/JosephSilber/bouncer), [AdminLTE theme](https://adminlte.io/) and [Datatables.net](https://datatables.net).
+This quickstart was created to make it easy to get started with Laravel 5.2 on OpenShift v3.
 
-We've also created almost identical project based on Spatie's Laravel-permission package: [see here](https://github.com/LaravelDaily/laravel-roles-permissions-manager)
+The simplest way to install this application is to use the OpenShift quickstart template. To install the quickstart, follow [these directions](#installation).
 
-Part of this project was generated automatically by [QuickAdminPanel system](https://quickadminpanel.com/).
+## Installation ##
 
-![Larancer screenshot](http://webcoderpro.com/roles-permissions-manager-bouncer.png)
+1. Create an account at [http://www.openshift.com/devpreview/register.html](http://www.openshift.com/devpreview/register.html)
 
-## Usage
+2. [Install the OpenShift CLI tools](https://docs.openshift.com/online/getting_started/beyond_the_basics.html#btb-installing-the-openshift-cli)
 
-This is not a package - it's a full Laravel project that you should use as a starter boilerplate, and then add your own custom functionality.
+3. Add the Laravel template(s) to your project:
 
-- Clone the repository with `git clone`
-- Copy `.env.example` file to `.env` and edit database credentials there
-- Run `composer install`
-- Run `php artisan key:generate`
-- Run `php artisan migrate --seed` (it has some seeded data - see below)
-- That's it: launch the main URL and login with default credentials `admin@admin.com` - `password`
+    ```
+    $ oc create -f https://raw.githubusercontent.com/luciddreamz/laravel-ex/master/openshift/templates/laravel-mysql.json
+    ```
+    or
 
-This boilerplate has one role (`administrator`), one ability (`users_manage`) and one administrator user.
+    ```
+    $ oc create -f https://raw.githubusercontent.com/luciddreamz/laravel-ex/master/openshift/templates/laravel-postgresql.json
+    ```
+    or
 
-With that user you can create more roles/abilities/users, and then use them in your code, by using functionality like `Gate` or `@can`, as in default Laravel, or with help of Bouncer's package methods.
+    ```
+    $ oc create -f https://raw.githubusercontent.com/luciddreamz/laravel-ex/master/openshift/templates/laravel-sqlite.json
+    ```
 
-## License
+4. Fork this GitHub repo
 
-The [MIT license](http://opensource.org/licenses/MIT).
+5. From the [web console](https://console.preview.openshift.com/console/), select your project, click *Add to Project*, and select the Laravel template under the PHP heading
 
-## Notice
+6. Replace the user name in the Git Repository URL parameter with your GitHub user name to point the template to your fork
 
-We are not responsible for any functionality or bugs in **AdminLTE**, **Bouncer** or **Datatables** packages or their future versions, if you find bugs there - please contact vendors directly.
+7. Scroll to the bottom of the page and click *[ Create ]* to deploy your application
+
+8. Follow [these instructions](https://docs.openshift.com/online/getting_started/basic_walkthrough.html#bw-configuring-automated-builds) to configure automated builds, allowing you to push your code to your GitHub repo and automatically trigger a new deployment
+
+## OpenShift Considerations ##
+These are some special considerations you may need to keep in mind when running your application on OpenShift.
+
+### Local vs. Remote Development ###
+This Laravel quickstart provides separate configuration files for both local and remote development. Use `.env` for local development, and `.s2i/environment` for remote development.
+
+### Remote Development ###
+Your application is configured to automatically use an OpenShift MySQL, PostgreSQL, or SQLite database in when deployed on OpenShift using the included templates (see `openshift/templates`).
+
+Additionally, your `APP_ENV`, `APP_URL`, and `APP_KEY` can be set by following the [installation](#installation) instructions with the included templates.
+
+### Laravel Migrations ###
+The `php artisan migrate --force` command is automatically executed during deployment when using any of the included templates (see `openshift/templates`).
+
+### Composer ###
+During the build process, `composer install` is automatically executed over the root directory. See the [PHP 5.6 builder image](https://github.com/sclorg/s2i-php-container/tree/master/5.6) for more details, or more specifically see [here](https://github.com/sclorg/s2i-php-container/blob/master/5.6/s2i/bin/assemble#L9-L26).
+
+### 'Development' Mode ###
+By default, this Quickstart is configured in 'development' mode to make debugging your application easier.
+
+When you develop your Laravel application in OpenShift, you can also enable the 'production' environment by setting environment variables, using the `oc` client, like:
+
+```
+$ oc get services
+NAME                     CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+laravel-mysql-example   172.30.79.234   <none>        8080/TCP   23m
+$ oc set env dc/laravel-mysql-example LARAVEL_APP_ENV=production LARAVEL_APP_DEBUG=false OPCACHE_REVALIDATE_FREQ=2
+```
+
+Next, run `oc status` to confirm that an updated deployment has been kicked off.
+
+For more information on environment variables impacting PHP behavior on OpenShift, see the [PHP 5.6 builder image](https://github.com/sclorg/s2i-php-container/tree/master/5.6#environment-variables).
+
+For more information on Laravel environment variables, see the [Laravel environment configuration documentation](https://laravel.com/docs/5.2/configuration#environment-configuration).
+
+### Log Files ###
+Your application is configured to use the OpenShift log directory. You can use the `oc logs` command to stream the latest log file entries from your running pod:
+
+```
+$ oc get pods
+NAME                             READY     STATUS      RESTARTS   AGE
+laravel-mysql-example-1-build   0/1       Completed   0          26m
+laravel-mysql-example-1-hj2k1   1/1       Running     0          23m
+$ oc logs laravel-mysql-example-1-hj2k1
+```
+
+To stop tailing the logs, press *Ctrl + c*.
+
+## Additional Resources ##
+Documentation for the Laravel framework can be found on the [Laravel website](http://laravel.com/docs). Check out OpenShift's [Documentation](https://docs.openshift.com/online/using_images/s2i_images/php.html) for help running PHP on OpenShift.
